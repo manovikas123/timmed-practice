@@ -99,3 +99,14 @@ export function playDoubleBeep(): void {
   }, 220);
   void now;
 }
+
+/**
+ * Plays a sequence of `count` evenly-spaced beeps. Used to signal the end
+ * of a practice session (e.g. five beeps in a row). `gapMs` is the time
+ * between the *start* of consecutive beeps.
+ */
+export function playBeepSequence(count: number, gapMs = 350): void {
+  for (let i = 0; i < count; i += 1) {
+    window.setTimeout(() => playBeep(), i * gapMs);
+  }
+}
