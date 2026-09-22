@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { IntervalForm } from "./components/IntervalForm";
 import { TimerDisplay } from "./components/TimerDisplay";
 import { useIntervalTimer } from "./hooks/useIntervalTimer";
-import { formatElapsedMs, formatSecondsFriendly } from "./utils/time";
+import { formatSecondsFriendly } from "./utils/time";
 import "./App.css";
 
 function validateDuration(minutes: number, seconds: number): string | null {
@@ -65,7 +65,6 @@ function App() {
   };
 
   const isIdle = status === "idle";
-  const nextBeepSeconds = Math.ceil(remainingMs / 1000);
 
   return (
     <div className="app">
@@ -86,6 +85,7 @@ function App() {
 
         <TimerDisplay
           remainingMs={isIdle ? durationMs : remainingMs}
+          elapsedMs={elapsedMs}
           isPulsing={isPulsing}
           isRunning={status === "running"}
         />
@@ -117,20 +117,12 @@ function App() {
         </div>
 
         <dl className="stats">
-          <div className="stats__row stats__row--emphasis">
-            <dt>Session time</dt>
-            <dd>{formatElapsedMs(elapsedMs)}</dd>
-          </div>
           <div className="stats__row">
             <dt>Interval</dt>
             <dd>{formatSecondsFriendly(minutes * 60 + seconds)}</dd>
           </div>
           <div className="stats__row">
-            <dt>Next beep in</dt>
-            <dd>{isIdle ? "—" : `${nextBeepSeconds}s`}</dd>
-          </div>
-          <div className="stats__row">
-            <dt>Completed</dt>
+            <dt>Completed intervals</dt>
             <dd>{completedIntervals}</dd>
           </div>
         </dl>
