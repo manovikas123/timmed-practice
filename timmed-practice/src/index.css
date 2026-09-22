@@ -1,0 +1,42 @@
+:root {
+  color-scheme: light dark;
+  --color-bg: #0f1115;
+  --color-surface: #171a21;
+  --color-surface-2: #1f232c;
+  --color-border: #2a2f3a;
+  --color-text: #f4f5f7;
+  --color-text-muted: #9aa1ad;
+  --color-accent: #4f8cff;
+  --color-accent-strong: #6ea2ff;
+  --color-danger: #ff5c5c;
+  --color-danger-strong: #ff7a7a;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at top, #1b1e27 0%, var(--color-bg) 70%);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
+
+input {
+  font-family: inherit;
+}

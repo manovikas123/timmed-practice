@@ -1,0 +1,263 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card__header {
+  text-align: center;
+}
+
+.card__header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Interval form */
+
+.interval-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.interval-form__fields {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+}
+
+.interval-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.interval-form__field input {
+  width: 84px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.interval-form__field input:disabled {
+  opacity: 0.5;
+}
+
+.interval-form__field input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.interval-form__colon {
+  padding-bottom: 10px;
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+}
+
+.interval-form__error {
+  margin: 0;
+  color: var(--color-danger-strong);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.interval-form__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.preset-chip {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.preset-chip:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.preset-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Timer display */
+
+.timer-display {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 4.4rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 16px 0;
+  border-radius: 16px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.timer-display--running {
+  color: var(--color-accent-strong);
+}
+
+.timer-display--pulse {
+  background-color: rgba(79, 140, 255, 0.18);
+}
+
+/* Controls */
+
+.controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s ease, filter 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn--primary {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn--primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--secondary {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn--secondary:hover {
+  filter: brightness(1.15);
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn--danger:hover {
+  filter: brightness(1.08);
+}
+
+/* Stats */
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+}
+
+.stats__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.stats__row dt {
+  color: var(--color-text-muted);
+}
+
+.stats__row dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* Responsive */
+
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 18px 20px;
+    border-radius: 16px;
+  }
+
+  .timer-display {
+    font-size: 3.4rem;
+  }
+
+  .interval-form__field input {
+    width: 72px;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #f4f6fa;
+    --color-surface: #ffffff;
+    --color-surface-2: #f0f2f6;
+    --color-border: #dfe3ea;
+    --color-text: #1b1e27;
+    --color-text-muted: #666e7d;
+  }
+
+  body {
+    background: radial-gradient(circle at top, #ffffff 0%, var(--color-bg) 70%);
+  }
+}
