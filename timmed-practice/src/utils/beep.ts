@@ -84,29 +84,13 @@ export function playBeep(): void {
 }
 
 /**
- * Plays a slightly more prominent double-beep, used e.g. for a "final"
- * or emphasis cue if ever needed. Not used by default, but kept small
- * and available for future use without adding external dependencies.
- */
-export function playDoubleBeep(): void {
-  playBeep();
-  const ctx = getAudioContext();
-  const now = ctx.currentTime;
-  setTimeout(() => {
-    if (ctx.state !== "closed") {
-      playBeep();
-    }
-  }, 220);
-  void now;
-}
-
-/**
- * Plays a sequence of `count` evenly-spaced beeps. Used to signal the end
- * of a practice session (e.g. five beeps in a row). `gapMs` is the time
- * between the *start* of consecutive beeps.
+ * Plays a short burst of `count` beeps spaced `gapMs` apart. Used for the
+ * "practice session finished" signal, which is intentionally distinct
+ * from the single interval beep so it's unmistakable when the whole
+ * session (not just one sub-interval) has ended.
  */
 export function playBeepSequence(count: number, gapMs = 350): void {
-  for (let i = 0; i < count; i += 1) {
-    window.setTimeout(() => playBeep(), i * gapMs);
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => playBeep(), i * gapMs);
   }
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { playBeep, unlockAudio } from "../utils/beep";
+import { playBeep, unlockAudio } from "../../utils/beep";
 
 export type TimerStatus = "idle" | "running" | "paused";
 
@@ -9,12 +9,6 @@ interface UseIntervalTimerResult {
   remainingMs: number;
   /** Number of full intervals completed (beeps fired) since Start. */
   completedIntervals: number;
-  /**
-   * Total elapsed session time in milliseconds, counting up from 0 from the
-   * moment Start is pressed until Stop is pressed. Pauses (if used) do not
-   * advance this — it reflects actual practice time, like a stopwatch.
-   */
-  elapsedMs: number;
   /** Start (or restart) the repeating timer with the given duration. */
   start: (durationMs: number) => void;
   /** Stop the timer entirely and reset to idle. */
@@ -41,28 +35,23 @@ const TICK_MS = 100;
  * which would itself drift), and continue. Because we always add whole
  * multiples of the interval to the *original* start time's cadence, long
  * running sessions stay aligned to the interval boundaries.
+ *
+ * This hook is purely about the repeating beep interval — it has no
+ * notion of total elapsed session time. Use `useStopwatch` separately if
+ * you need a count-up clock, and `usePracticeSession` if you need both a
+ * total session duration and a repeating sub-interval beep together.
  */
 export function useIntervalTimer(): UseIntervalTimerResult {
   const [status, setStatus] = useState<TimerStatus>("idle");
   const [remainingMs, setRemainingMs] = useState(0);
   const [completedIntervals, setCompletedIntervals] = useState(0);
-  const [elapsedMs, setElapsedMs] = useState(0);
 
   const durationRef = useRef(0); // selected interval length, ms
   const targetTimeRef = useRef(0); // timestamp (ms) when current cycle ends
   const pausedRemainingRef = useRef(0); // remaining ms snapshot while paused
   const rafRef = useRef<number | null>(null);
-  const lastTickRef = useRef(0);
   const statusRef = useRef<TimerStatus>("idle");
   const tickRef = useRef<() => void>(() => {});
-
-  // Stopwatch bookkeeping: `elapsedBaseRef` accumulates whole milliseconds
-  // from prior running segments (i.e. time banked before the most recent
-  // pause), and `segmentStartRef` is the timestamp the current running
-  // segment began. Total elapsed = base + (now - segmentStart) while
-  // running, or just base while paused/idle.
-  const elapsedBaseRef = useRef(0);
-  const segmentStartRef = useRef(0);
 
   useEffect(() => {
     statusRef.current = status;
@@ -101,7 +90,6 @@ export function useIntervalTimer(): UseIntervalTimerResult {
     }
 
     setRemainingMs(Math.max(0, remaining));
-    setElapsedMs(elapsedBaseRef.current + (now - segmentStartRef.current));
 
     // Schedule next tick, self-correcting for how long this tick took.
     const elapsed = Date.now() - now;
@@ -109,8 +97,6 @@ export function useIntervalTimer(): UseIntervalTimerResult {
     rafRef.current = window.setTimeout(() => tickRef.current(), delay);
   }, []);
 
-  // Keep a stable ref to the latest `tick` so the recursive scheduling
-  // above never closes over a stale/self-referential binding.
   useEffect(() => {
     tickRef.current = tick;
   }, [tick]);
@@ -118,24 +104,15 @@ export function useIntervalTimer(): UseIntervalTimerResult {
   const start = useCallback(
     (durationMs: number) => {
       if (durationMs <= 0) return;
-      // Guard against double-starts creating two loops.
-      if (statusRef.current === "running") return;
+      if (statusRef.current === "running") return; // guard against double-start
 
       clearLoop();
       void unlockAudio();
 
-      const now = Date.now();
       durationRef.current = durationMs;
-      targetTimeRef.current = now + durationMs;
+      targetTimeRef.current = Date.now() + durationMs;
       setRemainingMs(durationMs);
       setCompletedIntervals(0);
-      lastTickRef.current = now;
-
-      // Reset the stopwatch to 0 and begin a fresh running segment.
-      elapsedBaseRef.current = 0;
-      segmentStartRef.current = now;
-      setElapsedMs(0);
-
       setStatus("running");
       statusRef.current = "running";
 
@@ -151,17 +128,12 @@ export function useIntervalTimer(): UseIntervalTimerResult {
     setRemainingMs(0);
     setCompletedIntervals(0);
     pausedRemainingRef.current = 0;
-    elapsedBaseRef.current = 0;
-    segmentStartRef.current = 0;
-    setElapsedMs(0);
   }, [clearLoop]);
 
   const pause = useCallback(() => {
     if (statusRef.current !== "running") return;
     clearLoop();
     pausedRemainingRef.current = Math.max(0, targetTimeRef.current - Date.now());
-    // Bank the elapsed stopwatch time so it doesn't advance while paused.
-    elapsedBaseRef.current += Date.now() - segmentStartRef.current;
     setStatus("paused");
     statusRef.current = "paused";
   }, [clearLoop]);
@@ -169,16 +141,12 @@ export function useIntervalTimer(): UseIntervalTimerResult {
   const resume = useCallback(() => {
     if (statusRef.current !== "paused") return;
     void unlockAudio();
-    const now = Date.now();
-    targetTimeRef.current = now + pausedRemainingRef.current;
-    segmentStartRef.current = now;
+    targetTimeRef.current = Date.now() + pausedRemainingRef.current;
     setStatus("running");
     statusRef.current = "running";
     rafRef.current = window.setTimeout(tick, TICK_MS);
   }, [tick]);
 
-  // Recalculate immediately when the tab becomes visible again, so the
-  // displayed time snaps to correct rather than waiting for the next tick.
   useEffect(() => {
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible" && statusRef.current === "running") {
@@ -189,9 +157,7 @@ export function useIntervalTimer(): UseIntervalTimerResult {
     return () => document.removeEventListener("visibilitychange", onVisibilityChange);
   }, [tick]);
 
-  useEffect(() => {
-    return () => clearLoop();
-  }, [clearLoop]);
+  useEffect(() => () => clearLoop(), [clearLoop]);
 
-  return { status, remainingMs, completedIntervals, elapsedMs, start, stop, pause, resume };
+  return { status, remainingMs, completedIntervals, start, stop, pause, resume };
 }
