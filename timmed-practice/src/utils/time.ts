@@ -7,6 +7,24 @@ export function formatMs(ms: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+/**
+ * Formats milliseconds as MM:SS, switching to H:MM:SS once the duration
+ * reaches an hour. Intended for an elapsed-time / stopwatch display where
+ * sessions can run long, unlike the short repeating interval countdown.
+ */
+export function formatElapsedMs(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const clamped = Math.max(0, totalSeconds);
+  const hours = Math.floor(clamped / 3600);
+  const minutes = Math.floor((clamped % 3600) / 60);
+  const seconds = clamped % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 /** Formats a whole-second duration as a friendly "Xs" / "Mm Ss" string. */
 export function formatSecondsFriendly(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);

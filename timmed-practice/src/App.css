@@ -223,6 +223,12 @@
   font-weight: 600;
 }
 
+.stats__row--emphasis dd {
+  font-family: var(--font-mono);
+  color: var(--color-accent-strong);
+  font-size: 1rem;
+}
+
 .hint {
   margin: 0;
   text-align: center;

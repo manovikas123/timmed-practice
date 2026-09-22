@@ -9,6 +9,12 @@ interface UseIntervalTimerResult {
   remainingMs: number;
   /** Number of full intervals completed (beeps fired) since Start. */
   completedIntervals: number;
+  /**
+   * Total elapsed session time in milliseconds, counting up from 0 from the
+   * moment Start is pressed until Stop is pressed. Pauses (if used) do not
+   * advance this — it reflects actual practice time, like a stopwatch.
+   */
+  elapsedMs: number;
   /** Start (or restart) the repeating timer with the given duration. */
   start: (durationMs: number) => void;
   /** Stop the timer entirely and reset to idle. */
@@ -40,6 +46,7 @@ export function useIntervalTimer(): UseIntervalTimerResult {
   const [status, setStatus] = useState<TimerStatus>("idle");
   const [remainingMs, setRemainingMs] = useState(0);
   const [completedIntervals, setCompletedIntervals] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
 
   const durationRef = useRef(0); // selected interval length, ms
   const targetTimeRef = useRef(0); // timestamp (ms) when current cycle ends
@@ -48,6 +55,14 @@ export function useIntervalTimer(): UseIntervalTimerResult {
   const lastTickRef = useRef(0);
   const statusRef = useRef<TimerStatus>("idle");
   const tickRef = useRef<() => void>(() => {});
+
+  // Stopwatch bookkeeping: `elapsedBaseRef` accumulates whole milliseconds
+  // from prior running segments (i.e. time banked before the most recent
+  // pause), and `segmentStartRef` is the timestamp the current running
+  // segment began. Total elapsed = base + (now - segmentStart) while
+  // running, or just base while paused/idle.
+  const elapsedBaseRef = useRef(0);
+  const segmentStartRef = useRef(0);
 
   useEffect(() => {
     statusRef.current = status;
@@ -86,6 +101,7 @@ export function useIntervalTimer(): UseIntervalTimerResult {
     }
 
     setRemainingMs(Math.max(0, remaining));
+    setElapsedMs(elapsedBaseRef.current + (now - segmentStartRef.current));
 
     // Schedule next tick, self-correcting for how long this tick took.
     const elapsed = Date.now() - now;
@@ -108,11 +124,18 @@ export function useIntervalTimer(): UseIntervalTimerResult {
       clearLoop();
       void unlockAudio();
 
+      const now = Date.now();
       durationRef.current = durationMs;
-      targetTimeRef.current = Date.now() + durationMs;
+      targetTimeRef.current = now + durationMs;
       setRemainingMs(durationMs);
       setCompletedIntervals(0);
-      lastTickRef.current = Date.now();
+      lastTickRef.current = now;
+
+      // Reset the stopwatch to 0 and begin a fresh running segment.
+      elapsedBaseRef.current = 0;
+      segmentStartRef.current = now;
+      setElapsedMs(0);
+
       setStatus("running");
       statusRef.current = "running";
 
@@ -128,12 +151,17 @@ export function useIntervalTimer(): UseIntervalTimerResult {
     setRemainingMs(0);
     setCompletedIntervals(0);
     pausedRemainingRef.current = 0;
+    elapsedBaseRef.current = 0;
+    segmentStartRef.current = 0;
+    setElapsedMs(0);
   }, [clearLoop]);
 
   const pause = useCallback(() => {
     if (statusRef.current !== "running") return;
     clearLoop();
     pausedRemainingRef.current = Math.max(0, targetTimeRef.current - Date.now());
+    // Bank the elapsed stopwatch time so it doesn't advance while paused.
+    elapsedBaseRef.current += Date.now() - segmentStartRef.current;
     setStatus("paused");
     statusRef.current = "paused";
   }, [clearLoop]);
@@ -141,7 +169,9 @@ export function useIntervalTimer(): UseIntervalTimerResult {
   const resume = useCallback(() => {
     if (statusRef.current !== "paused") return;
     void unlockAudio();
-    targetTimeRef.current = Date.now() + pausedRemainingRef.current;
+    const now = Date.now();
+    targetTimeRef.current = now + pausedRemainingRef.current;
+    segmentStartRef.current = now;
     setStatus("running");
     statusRef.current = "running";
     rafRef.current = window.setTimeout(tick, TICK_MS);
@@ -163,5 +193,5 @@ export function useIntervalTimer(): UseIntervalTimerResult {
     return () => clearLoop();
   }, [clearLoop]);
 
-  return { status, remainingMs, completedIntervals, start, stop, pause, resume };
+  return { status, remainingMs, completedIntervals, elapsedMs, start, stop, pause, resume };
 }

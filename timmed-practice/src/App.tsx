@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { IntervalForm } from "./components/IntervalForm";
 import { TimerDisplay } from "./components/TimerDisplay";
 import { useIntervalTimer } from "./hooks/useIntervalTimer";
-import { formatSecondsFriendly } from "./utils/time";
+import { formatElapsedMs, formatSecondsFriendly } from "./utils/time";
 import "./App.css";
 
 function validateDuration(minutes: number, seconds: number): string | null {
@@ -26,7 +26,7 @@ function App() {
   const [seconds, setSeconds] = useState(30);
   const [isPulsing, setIsPulsing] = useState(false);
 
-  const { status, remainingMs, completedIntervals, start, stop, pause, resume } =
+  const { status, remainingMs, completedIntervals, elapsedMs, start, stop, pause, resume } =
     useIntervalTimer();
 
   const durationMs = (minutes * 60 + seconds) * 1000;
@@ -117,6 +117,10 @@ function App() {
         </div>
 
         <dl className="stats">
+          <div className="stats__row stats__row--emphasis">
+            <dt>Session time</dt>
+            <dd>{formatElapsedMs(elapsedMs)}</dd>
+          </div>
           <div className="stats__row">
             <dt>Interval</dt>
             <dd>{formatSecondsFriendly(minutes * 60 + seconds)}</dd>
