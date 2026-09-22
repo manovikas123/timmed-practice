@@ -26,7 +26,7 @@ function App() {
   const [seconds, setSeconds] = useState(30);
   const [isPulsing, setIsPulsing] = useState(false);
 
-  const { status, remainingMs, completedIntervals, start, stop, pause, resume } =
+  const { status, remainingMs, completedIntervals, elapsedMs, start, stop, pause, resume } =
     useIntervalTimer();
 
   const durationMs = (minutes * 60 + seconds) * 1000;
@@ -65,7 +65,6 @@ function App() {
   };
 
   const isIdle = status === "idle";
-  const nextBeepSeconds = Math.ceil(remainingMs / 1000);
 
   return (
     <div className="app">
@@ -86,6 +85,7 @@ function App() {
 
         <TimerDisplay
           remainingMs={isIdle ? durationMs : remainingMs}
+          elapsedMs={elapsedMs}
           isPulsing={isPulsing}
           isRunning={status === "running"}
         />
@@ -122,11 +122,7 @@ function App() {
             <dd>{formatSecondsFriendly(minutes * 60 + seconds)}</dd>
           </div>
           <div className="stats__row">
-            <dt>Next beep in</dt>
-            <dd>{isIdle ? "—" : `${nextBeepSeconds}s`}</dd>
-          </div>
-          <div className="stats__row">
-            <dt>Completed</dt>
+            <dt>Completed intervals</dt>
             <dd>{completedIntervals}</dd>
           </div>
         </dl>
